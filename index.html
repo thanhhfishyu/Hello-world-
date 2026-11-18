@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Vũ trụ 10A7 · Tri ân 19/11</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;600;800&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--gold:#ffd27a;--ink:#e9ecff;--muted:#a9b2d9;--glass:rgba(14,16,40,.62);--line:rgba(160,180,255,.22)}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{width:100%;height:100%;overflow:hidden;background:#02010a;color:var(--ink);font-family:'Be Vietnam Pro',system-ui,sans-serif}
+  canvas#c{position:fixed;inset:0;display:block;touch-action:none}
+  .hidden{opacity:0;pointer-events:none!important;visibility:hidden}
+  button{font-family:inherit;cursor:pointer}
+
+  /* labels */
+  #labels{position:fixed;inset:0;pointer-events:none;z-index:2}
+  .lbl{position:absolute;left:0;top:0;transform:translate(-50%,0);white-space:nowrap;pointer-events:auto;cursor:pointer;
+       font-size:12px;letter-spacing:.04em;padding:3px 10px;border-radius:999px;background:rgba(10,12,30,.5);
+       border:1px solid var(--line);color:var(--ink);backdrop-filter:blur(4px);transition:opacity .3s,background .3s}
+  .lbl:hover{background:rgba(60,70,150,.6)}
+  .lbl.seen::before{content:'✦ ';color:var(--gold)}
+  .lbl.sun{font-family:'Dancing Script',cursive;font-size:26px;background:none;border:none;color:var(--gold);
+           text-shadow:0 0 18px rgba(255,190,90,.9);pointer-events:none;transform:translate(-50%,-50%)}
+  .lbl.sun small{display:block;font-family:'Be Vietnam Pro';font-size:10px;letter-spacing:.35em;text-align:center;color:#ffe9c2;opacity:.85}
+
+  /* hud */
+  #hud{position:fixed;inset:0;pointer-events:none;z-index:3;transition:opacity 1s}
+  #brand{position:absolute;top:max(16px,env(safe-area-inset-top));left:18px}
+  #brand h1{font-family:'Dancing Script',cursive;font-size:30px;color:var(--gold);text-shadow:0 0 16px rgba(255,200,110,.5);line-height:1}
+  #brand p{font-size:11px;letter-spacing:.3em;color:var(--muted);margin-top:4px}
+  #progress{position:absolute;top:max(18px,env(safe-area-inset-top));right:18px;font-size:12px;color:var(--muted);text-align:right}
+  #progress b{color:var(--gold);font-size:16px}
+  #hint{position:absolute;bottom:max(84px,calc(env(safe-area-inset-bottom) + 76px));left:50%;transform:translateX(-50%);font-size:12px;color:var(--muted);
+        white-space:nowrap;opacity:.85;animation:breath 3s ease-in-out infinite}
+  #actions{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;gap:10px;pointer-events:auto}
+  .btn{white-space:nowrap;border:1px solid var(--line);background:var(--glass);color:var(--ink);padding:11px 18px;border-radius:999px;font-size:14px;
+       backdrop-filter:blur(10px);transition:transform .2s,background .2s,box-shadow .3s}
+  .btn:hover{transform:translateY(-2px);background:rgba(40,46,110,.75)}
+  .btn.gold{border-color:rgba(255,210,122,.6);color:#fff3da}
+  .btn.pulse{animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,210,122,.55)}50%{box-shadow:0 0 0 12px rgba(255,210,122,0)}}
+  @keyframes breath{0%,100%{opacity:.45}50%{opacity:.95}}
+
+  /* intro */
+  #intro{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;
+         background:radial-gradient(ellipse at center,rgba(5,4,20,.35),rgba(2,1,10,.92) 70%);transition:opacity 1.4s,visibility 1.4s}
+  #intro .inner{max-width:560px}
+  #intro .date{letter-spacing:.6em;font-size:12px;color:var(--gold);opacity:0;animation:up 1s .3s forwards}
+  #intro h2{font-family:'Dancing Script',cursive;font-size:clamp(40px,9vw,72px);line-height:1.1;margin:14px 0 18px;
+            background:linear-gradient(120deg,#fff4d6,#ffd27a 40%,#a9c4ff 80%);-webkit-background-clip:text;background-clip:text;color:transparent;
+            filter:drop-shadow(0 0 24px rgba(255,200,120,.35));opacity:0;animation:up 1.2s .7s forwards}
+  #intro p{color:#cfd6ff;line-height:1.75;font-size:15px;font-weight:300;opacity:0;animation:up 1.2s 1.2s forwards}
+  #intro .btn{margin-top:30px;font-size:15px;padding:14px 28px;opacity:0;animation:up 1s 1.8s forwards}
+  @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+  /* card */
+  #card{position:fixed;z-index:6;right:24px;top:50%;transform:translateY(-50%);width:min(400px,calc(100vw - 32px));max-height:86vh;overflow:auto;
+        background:linear-gradient(160deg,rgba(24,26,64,.82),rgba(10,10,30,.88));border:1px solid var(--line);border-radius:22px;padding:24px 22px 18px;
+        backdrop-filter:blur(14px);box-shadow:0 30px 80px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);transition:opacity .45s,transform .45s,visibility .45s}
+  #card.hidden{transform:translateY(-46%)}
+  #card .x{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--muted);font-size:14px}
+  #card .kicker{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted)}
+  #card h2{font-size:30px;font-weight:800;margin:6px 0 14px;line-height:1.15}
+  #card .dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;vertical-align:middle;box-shadow:0 0 12px currentColor}
+  #cPhoto img{width:100%;border-radius:14px;display:block;margin-bottom:14px;cursor:zoom-in;border:1px solid rgba(255,255,255,.12)}
+  #cMsg{line-height:1.75;color:#d9defa;font-size:15px;font-weight:300}
+  #card .row{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:8px}
+  #card .row .btn{padding:9px 14px;font-size:13px}
+  #cIdx{font-size:12px;color:var(--muted)}
+  @media (max-width:640px){
+    #card{right:50%;top:auto;bottom:12px;transform:translateX(50%);max-height:56vh;padding:18px 16px 12px}
+    #card.hidden{transform:translate(50%,30px)}
+    #card h2{font-size:24px}
+    #cPhoto img{max-height:22vh;object-fit:cover}
+    #cMsg{font-size:14px;line-height:1.65}
+    #brand h1{font-size:24px}
+    #actions .btn{padding:10px 14px;font-size:13px}
+    #hint{font-size:10.5px}
+  }
+
+  /* letter */
+  #letter{position:fixed;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(2,1,10,.7);
+          backdrop-filter:blur(6px);transition:opacity .8s,visibility .8s}
+  #letter .paper{max-width:560px;width:100%;max-height:88vh;overflow:auto;padding:34px 30px 26px;border-radius:24px;position:relative;
+          background:linear-gradient(170deg,rgba(30,28,70,.92),rgba(12,12,34,.95));border:1px solid rgba(255,210,122,.35);
+          box-shadow:0 0 80px rgba(255,190,100,.12),0 40px 100px rgba(0,0,0,.6)}
+  #letter h3{font-family:'Dancing Script',cursive;font-size:38px;color:var(--gold);margin-bottom:14px}
+  #letter p{line-height:1.85;color:#dde2ff;font-weight:300;margin-bottom:12px;opacity:0;transform:translateY(10px);transition:opacity 1s,transform 1s}
+  #letter p.on{opacity:1;transform:none}
+  #letter .sign{font-family:'Dancing Script',cursive;font-size:24px;color:#ffe3ad;text-align:right;margin-top:8px}
+  #letter .x{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--muted)}
+
+  /* lightbox */
+  #lightbox{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;transition:opacity .4s,visibility .4s;cursor:zoom-out}
+  #lightbox img{max-width:94vw;max-height:90vh;border-radius:10px;box-shadow:0 0 60px rgba(150,170,255,.25)}
+
+  /* fx */
+  .shoot{position:fixed;z-index:1;height:2px;width:160px;pointer-events:none;border-radius:2px;
+         background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.95));filter:drop-shadow(0 0 6px #bcd0ff)}
+  .spark{position:fixed;z-index:4;pointer-events:none;font-size:18px;color:var(--gold);transform:translate(-50%,-50%);animation:spark 1.2s ease-out forwards;text-shadow:0 0 12px #ffd27a}
+  @keyframes spark{0%{opacity:1;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(-50%,-120%) scale(1.6) rotate(40deg)}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="labels"></div>
+
+<div id="hud" class="hidden">
+  <div id="brand"><h1>Vũ trụ 10A7</h1><p>19 · 11 · 2026</p></div>
+  <div id="progress">Đã khám phá<br><b id="seenCount">0</b> / <span id="totalCount">8</span> hành tinh</div>
+  <div id="hint">Kéo để xoay · Cuộn/chụm để phóng to · Chạm vào hành tinh ✦</div>
+  <div id="actions">
+    <button class="btn" id="pauseBtn">⏸ Dừng lại</button>
+    <button class="btn gold" id="letterBtn">💌 Lá thư gửi các cậu</button>
+  </div>
+</div>
+
+<div id="intro">
+  <div class="inner">
+    <div class="date">19 · 11 · 2026</div>
+    <h2>Gửi những chàng trai 10A7</h2>
+    <p>Giữa vũ trụ bao la này, có tám hành tinh được đặt theo tên những điều tuyệt vời nhất ở các cậu.<br>Hãy chạm vào từng hành tinh để khám phá nhé ✦</p>
+    <button class="btn gold" id="startBtn">Bước vào vũ trụ ✦</button>
+  </div>
+</div>
+
+<div id="card" class="hidden">
+  <button class="x" id="cardClose" aria-label="Đóng">✕</button>
+  <div class="kicker" id="cKicker"></div>
+  <h2 id="cTitle"></h2>
+  <div id="cPhoto"></div>
+  <p id="cMsg"></p>
+  <div class="row">
+    <button class="btn" id="cPrev">← Trước</button>
+    <span id="cIdx"></span>
+    <button class="btn gold" id="cNext">Tiếp →</button>
+  </div>
+</div>
+
+<div id="letter" class="hidden">
+  <div class="paper">
+    <button class="x" id="letterClose" aria-label="Đóng">✕</button>
+    <h3>Gửi các chàng trai 10A7,</h3>
+    <div id="letterBody"></div>
+    <div class="sign" id="letterSign"></div>
+  </div>
+</div>
+
+<div id="lightbox" class="hidden"><img id="lbImg" alt=""></div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* =====================================================
+   NỘI DUNG — sửa chữ / ảnh ở đây là xong
+   ===================================================== */
+const PLANETS = [
+  { name:'Sao Thủy', trait:'Nhanh nhẹn', r:.45, d:6, speed:1.6, type:'rock', colors:['#8f8378','#6b6058','#b9aa9b','#5a4f48'],
+    msg:'Hành tinh nhỏ nhất nhưng chạy nhanh nhất hệ — giống cách các cậu luôn là người xắn tay áo đầu tiên mỗi khi lớp cần: khiêng bàn, kê ghế, chạy việc, chẳng cần ai phải nhắc.' },
+  { name:'Sao Kim', trait:'Ấm áp', r:.7, d:8.5, speed:1.2, type:'bands', colors:['#e6b878','#d49a5b','#f3d3a1','#c98a4e'],
+    msg:'Sao Kim là “ngôi sao” sáng nhất trên bầu trời đêm. Đằng sau những trò trêu chọc, tụi mình biết các cậu ấm áp hơn vẻ ngoài nhiều lắm — chỉ là hơi ngại thừa nhận thôi 😄' },
+  { name:'Trái Đất', trait:'Ngôi nhà chung', r:.75, d:11.5, speed:1.0, type:'earth', colors:['#1d4f9c','#2f8f5b','#e8eef7'], photo:'img/anh2.jpg', caption:'cả nhà 10A7',
+    msg:'Hành tinh duy nhất có sự sống — và 10A7 là nơi duy nhất có đúng những con người này. Cảm ơn các cậu đã cùng nhau biến lớp học thành một “ngôi nhà” đầy ắp tiếng cười.' },
+  { name:'Sao Hỏa', trait:'Nhiệt huyết', r:.6, d:14.5, speed:.85, type:'rock', colors:['#b8492b','#8e3420','#d9734f','#6e2a1a'], photo:'img/anh1.jpg', caption:'áo trắng A7',
+    msg:'Hành tinh đỏ rực như sức nóng trên sân cỏ hôm ấy. Áo trắng A7, mồ hôi, nắng gắt và những pha bóng cháy hết mình — các cậu đã chơi bằng cả trái tim, và tụi mình tự hào lắm.' },
+  { name:'Sao Mộc', trait:'Vững chãi', r:1.6, d:19.5, speed:.5, type:'bands', colors:['#c9a27e','#a8744f','#e8d2b4','#8c5a3c'],
+    msg:'Sao Mộc khổng lồ âm thầm hút đi những thiên thạch để che chở cả hệ Mặt Trời. Cảm ơn các cậu vì luôn đứng ra gánh những phần việc nặng nhất, để lớp mình lúc nào cũng bình yên.' },
+  { name:'Sao Thổ', trait:'Đoàn kết', r:1.3, d:25, speed:.38, type:'bands', colors:['#e3cc94','#c9ab6c','#f1e3bb','#b8955a'], ring:true, photo:'img/anh3.jpg', caption:'mãi một đội',
+    msg:'Vành đai lấp lánh của Sao Thổ được tạo nên từ hàng tỉ mảnh băng nhỏ cùng bay chung một quỹ đạo. 10A7 cũng vậy — cầu thủ và cổ động viên, gộp lại thành một vòng tròn không thể tách rời.' },
+  { name:'Sao Thiên Vương', trait:'Cá tính', r:1.0, d:30, speed:.28, type:'bands', colors:['#8fd3dc','#79c0cb','#b5e6ec','#6aaab5'], tilt:1.7,
+    msg:'Hành tinh duy nhất quay “nằm nghiêng” — khác biệt nhưng chẳng sao cả. Mỗi cậu một cá tính, một kiểu hài hước riêng, và chính sự khác biệt ấy làm lớp mình thú vị đến vậy.' },
+  { name:'Sao Hải Vương', trait:'Ước mơ', r:.95, d:34.5, speed:.22, type:'bands', colors:['#3a5fd0','#2c48a8','#5d84ee','#22388a'],
+    msg:'Hành tinh xa nhất, phải thật kiên nhẫn mới nhìn thấy được. Mong các cậu luôn giữ những ước mơ xa xôi nhất, và cứ kiên trì bay tới — dù hành trình có dài đến đâu.' },
+];
+const LETTER = [
+  'Giữa hàng tỉ ngôi sao ngoài kia, vũ trụ đã sắp xếp để chúng mình cùng chung một lớp — chỉ riêng điều đó thôi đã là một phép màu nhỏ rồi.',
+  'Cảm ơn các cậu vì những trận bóng cháy hết mình dưới nắng, vì những tiếng cười làm lớp mình sáng hơn mỗi ngày, và vì đã luôn là điểm tựa mỗi khi 10A7 cần.',
+  'Nhân ngày Quốc tế Nam giới 19/11, chúc các cậu luôn khỏe mạnh, tử tế, dám mơ thật lớn và đủ dũng cảm để đi trên quỹ đạo của riêng mình.',
+  'Dù sau này mỗi người bay về một phương trời, mong rằng chúng ta vẫn mãi thuộc về cùng một dải ngân hà mang tên 10A7. 💙',
+];
+const SIGN = '— Các bạn nữ 10A7 ✦';
+
+/* ===================================================== */
+const $ = id => document.getElementById(id);
+const canvas = $('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, .1, 3000);
+const isMobile = innerWidth < 640;
+const CAM_HOME = isMobile ? new THREE.Vector3(0, 36, 74) : new THREE.Vector3(0, 19, 44);
+camera.position.set(0, 160, 260);
+
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = .06;
+controls.minDistance = 4; controls.maxDistance = 160; controls.enablePan = false;
+controls.autoRotate = true; controls.autoRotateSpeed = .25;
+controls.enabled = false;
+
+/* ---------- helpers ---------- */
+function canvasTex(w, h, draw){
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const rand = (a,b) => a + Math.random()*(b-a);
+function glowTex(inner, outer){
+  return canvasTex(256,256,(g)=>{
+    const gr = g.createRadialGradient(128,128,0,128,128,128);
+    gr.addColorStop(0, inner); gr.addColorStop(.25, outer); gr.addColorStop(1,'rgba(0,0,0,0)');
+    g.fillStyle = gr; g.fillRect(0,0,256,256);
+  });
+}
+
+/* ---------- nebula background ---------- */
+const nebula = new THREE.Mesh(
+  new THREE.SphereGeometry(900, 48, 32),
+  new THREE.MeshBasicMaterial({ side:THREE.BackSide, depthWrite:false, map: canvasTex(2048,1024,(g,w,h)=>{
+    g.fillStyle = '#03020c'; g.fillRect(0,0,w,h);
+    const cols = ['rgba(120,60,200,','rgba(40,80,200,','rgba(220,80,160,','rgba(30,140,200,','rgba(90,40,150,'];
+    for(let i=0;i<46;i++){
+      const x = rand(0,w), y = rand(h*.2,h*.8), r = rand(120,420);
+      const gr = g.createRadialGradient(x,y,0,x,y,r);
+      const c = cols[i%cols.length];
+      gr.addColorStop(0, c+rand(.05,.16)+')'); gr.addColorStop(1, c+'0)');
+      g.fillStyle = gr; g.fillRect(x-r,y-r,r*2,r*2);
+    }
+    for(let i=0;i<2500;i++){ g.fillStyle=`rgba(255,255,255,${rand(.1,.6)})`; g.fillRect(rand(0,w),rand(0,h),1,1); }
+  })})
+);
+scene.add(nebula);
+
+/* ---------- twinkling stars ---------- */
+function makeStars(count, rMin, rMax, sizeMin, sizeMax){
+  const pos = new Float32Array(count*3), col = new Float32Array(count*3), size = new Float32Array(count), phase = new Float32Array(count);
+  const palette = [[1,1,1],[.75,.85,1],[1,.88,.7],[1,.75,.9]];
+  for(let i=0;i<count;i++){
+    const v = new THREE.Vector3().randomDirection().multiplyScalar(rand(rMin,rMax));
+    pos.set([v.x,v.y,v.z], i*3);
+    col.set(palette[Math.floor(Math.random()*palette.length)], i*3);
+    size[i] = rand(sizeMin,sizeMax); phase[i] = rand(0,Math.PI*2);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('aColor', new THREE.BufferAttribute(col,3));
+  geo.setAttribute('aSize', new THREE.BufferAttribute(size,1));
+  geo.setAttribute('aPhase', new THREE.BufferAttribute(phase,1));
+  const mat = new THREE.ShaderMaterial({
+    uniforms:{ uTime:{value:0}, uPR:{value:renderer.getPixelRatio()} },
+    vertexShader:`attribute vec3 aColor; attribute float aSize; attribute float aPhase;
+      uniform float uTime; uniform float uPR; varying vec3 vC; varying float vA;
+      void main(){ vC=aColor; vA=.45+.55*(.5+.5*sin(uTime*1.7+aPhase));
+        vec4 mv=modelViewMatrix*vec4(position,1.); gl_PointSize=aSize*uPR*(300./-mv.z); gl_Position=projectionMatrix*mv; }`,
+    fragmentShader:`varying vec3 vC; varying float vA;
+      void main(){ float d=length(gl_PointCoord-.5); if(d>.5) discard; float a=pow(1.-d*2.,1.8); gl_FragColor=vec4(vC,a*vA); }`,
+    transparent:true, depthWrite:false, blending:THREE.AdditiveBlending
+  });
+  const pts = new THREE.Points(geo, mat); scene.add(pts); return pts;
+}
+const stars1 = makeStars(5000, 250, 700, 3, 7);
+const stars2 = makeStars(900, 80, 200, 1.5, 3.5);
+
+/* ---------- sun ---------- */
+const sunGroup = new THREE.Group(); scene.add(sunGroup);
+const sun = new THREE.Mesh(new THREE.SphereGeometry(3, 64, 64), new THREE.MeshBasicMaterial({ map: canvasTex(1024,512,(g,w,h)=>{
+  const gr = g.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#ffb347'); gr.addColorStop(.5,'#ffd26b'); gr.addColorStop(1,'#ff9a3c');
+  g.fillStyle = gr; g.fillRect(0,0,w,h);
+  for(let i=0;i<900;i++){ g.globalAlpha = rand(.05,.25); g.fillStyle = ['#fff1b8','#ff7a1f','#ffe08a','#ff5e1a'][i%4];
+    g.beginPath(); g.arc(rand(0,w),rand(0,h),rand(2,22),0,7); g.fill(); }
+})}));
+sunGroup.add(sun);
+const glow1 = new THREE.Sprite(new THREE.SpriteMaterial({ map:glowTex('rgba(255,236,180,1)','rgba(255,170,60,.55)'), blending:THREE.AdditiveBlending, depthWrite:false, transparent:true }));
+glow1.scale.set(17,17,1); sunGroup.add(glow1);
+const glow2 = new THREE.Sprite(new THREE.SpriteMaterial({ map:glowTex('rgba(255,140,90,.6)','rgba(255,90,140,.18)'), blending:THREE.AdditiveBlending, depthWrite:false, transparent:true }));
+glow2.scale.set(34,34,1); sunGroup.add(glow2);
+
+scene.add(new THREE.AmbientLight(0x8090c0, 1.1));
+const sunLight = new THREE.PointLight(0xfff0d8, 3.2, 0, 0); scene.add(sunLight);
+
+/* ---------- planets ---------- */
+function planetTex(p){
+  return canvasTex(1024,512,(g,w,h)=>{
+    const C = p.colors;
+    g.fillStyle = C[0]; g.fillRect(0,0,w,h);
+    if(p.type==='bands'){
+      for(let i=0;i<70;i++){ g.globalAlpha = rand(.15,.55); g.fillStyle = C[i%C.length];
+        const y = rand(0,h), hh = rand(3,34); g.fillRect(0,y,w,hh); }
+      g.globalAlpha=.25; for(let i=0;i<300;i++){ g.fillStyle=C[2]; g.fillRect(rand(0,w),rand(0,h),rand(10,80),rand(1,3)); }
+    } else if(p.type==='earth'){
+      g.globalAlpha = 1;
+      for(let i=0;i<34;i++){ g.fillStyle = i%5===0 ? '#7a6a3e' : C[1]; g.beginPath();
+        const x=rand(0,w), y=rand(h*.15,h*.85); for(let k=0;k<8;k++){ g.ellipse(x+rand(-60,60), y+rand(-30,30), rand(20,70), rand(14,40), rand(0,3), 0, 7); } g.fill(); }
+      g.fillStyle='#f2f6fb'; g.fillRect(0,0,w,26); g.fillRect(0,h-26,w,26);
+      g.globalAlpha=.55; for(let i=0;i<60;i++){ g.fillStyle='#ffffff'; g.beginPath(); g.ellipse(rand(0,w),rand(0,h),rand(20,90),rand(4,10),rand(-.3,.3),0,7); g.fill(); }
+    } else {
+      for(let i=0;i<500;i++){ g.globalAlpha = rand(.12,.45); g.fillStyle = C[1+(i%(C.length-1))];
+        g.beginPath(); g.arc(rand(0,w),rand(0,h),rand(2,26),0,7); g.fill(); }
+    }
+    g.globalAlpha = 1;
+  });
+}
+
+function polaroidTex(src, caption){
+  const c = document.createElement('canvas'); c.width = 320; c.height = 372;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const img = new Image();
+  img.onload = () => {
+    const draw = () => {
+      const g = c.getContext('2d');
+      g.fillStyle = '#fbf8f1'; g.fillRect(0,0,320,372);
+      const s = Math.max(290/img.width, 290/img.height), w = img.width*s, h = img.height*s;
+      g.save(); g.beginPath(); g.rect(15,15,290,290); g.clip(); g.drawImage(img, 15+(290-w)/2, 15+(290-h)/2, w, h); g.restore();
+      g.fillStyle = '#4a4560'; g.font = '700 32px "Dancing Script", cursive'; g.textAlign = 'center'; g.fillText(caption, 160, 350);
+      t.needsUpdate = true;
+    };
+    document.fonts.load('700 32px "Dancing Script"').then(draw, draw);
+  };
+  img.src = src; return t;
+}
+
+const clickables = [];
+const labelsEl = $('labels');
+const planetObjs = PLANETS.map((p, i) => {
+  // orbit line
+  const pts = []; for(let k=0;k<=160;k++){ const a = k/160*Math.PI*2; pts.push(new THREE.Vector3(Math.cos(a)*p.d, 0, Math.sin(a)*p.d)); }
+  const orbitPlane = new THREE.Group(); orbitPlane.rotation.x = rand(-.06,.06); orbitPlane.rotation.z = rand(-.04,.04); scene.add(orbitPlane);
+  orbitPlane.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),
+    new THREE.LineBasicMaterial({ color: 0x9fb4ff, transparent:true, opacity:.16 })));
+
+  const holder = new THREE.Group(); orbitPlane.add(holder);
+  const mesh = new THREE.Mesh(new THREE.SphereGeometry(p.r, 48, 48),
+    new THREE.MeshStandardMaterial({ map: planetTex(p), roughness:.85, metalness:0 }));
+  mesh.rotation.z = p.tilt ?? .4;
+  mesh.userData.index = i; holder.add(mesh); clickables.push(mesh);
+
+  // atmosphere glow
+  const atm = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(p.colors[2]+'', p.colors[0]+'44'),
+    blending:THREE.AdditiveBlending, transparent:true, depthWrite:false, opacity:.35 }));
+  atm.scale.setScalar(p.r*4.2); holder.add(atm);
+
+  if(p.ring){
+    const ringTex = canvasTex(512, 8, (g,w)=>{ for(let x=0;x<w;x++){ const a = (Math.sin(x*.09)*.5+.5)*.55 + rand(0,.35);
+      g.fillStyle = `rgba(232,214,170,${x<30||x>w-10 ? a*.3 : a})`; g.fillRect(x,0,1,8);} });
+    const rg = new THREE.RingGeometry(p.r*1.35, p.r*2.4, 128, 1);
+    const uv = rg.attributes.uv, v3 = new THREE.Vector3();
+    for(let k=0;k<uv.count;k++){ v3.fromBufferAttribute(rg.attributes.position,k); const t=(v3.length()-p.r*1.35)/(p.r*1.05); uv.setXY(k,t,.5); }
+    const ring = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ map:ringTex, side:THREE.DoubleSide, transparent:true, depthWrite:false }));
+    ring.rotation.x = -Math.PI/2 + .45; holder.add(ring);
+  }
+
+  let pola = null;
+  if(p.photo){
+    pola = new THREE.Sprite(new THREE.SpriteMaterial({ map: polaroidTex(p.photo, p.caption), transparent:true }));
+    const s = Math.max(1.5, p.r*1.6); pola.scale.set(s, s*372/320, 1);
+    pola.userData.index = i; holder.add(pola); clickables.push(pola);
+  }
+
+  const lbl = document.createElement('div'); lbl.className = 'lbl'; lbl.textContent = p.name;
+  lbl.onclick = () => openCard(i); labelsEl.appendChild(lbl);
+
+  return { p, holder, mesh, pola, lbl, angle: rand(0, Math.PI*2), polaAngle: rand(0,Math.PI*2) };
+});
+const sunLbl = document.createElement('div'); sunLbl.className = 'lbl sun';
+sunLbl.innerHTML = '10A7<small>19 · 11</small>'; labelsEl.appendChild(sunLbl);
+
+/* ---------- asteroid belt ---------- */
+const belt = (() => {
+  const n = 1400, pos = new Float32Array(n*3);
+  for(let i=0;i<n;i++){ const a = rand(0,Math.PI*2), r = rand(16.3,17.8); pos.set([Math.cos(a)*r, rand(-.35,.35), Math.sin(a)*r], i*3); }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  const pts = new THREE.Points(geo, new THREE.PointsMaterial({ size:.09, color:0xc9b8a0, transparent:true, opacity:.75, depthWrite:false }));
+  scene.add(pts); return pts;
+})();
+
+/* ---------- state & UI ---------- */
+let timeScale = 1, targetTimeScale = 1, paused = false;
+let started = false, introT = 0;
+const introFrom = camera.position.clone();
+let focus = null; // {target, cam}
+let current = -1;
+const seen = new Set();
+$('totalCount').textContent = PLANETS.length;
+
+$('startBtn').onclick = () => {
+  $('intro').classList.add('hidden'); started = true;
+  setTimeout(()=>$('hud').classList.remove('hidden'), 1800);
+};
+
+function worldPos(obj){ return obj.getWorldPosition(new THREE.Vector3()); }
+
+function openCard(i){
+  current = i; const o = planetObjs[i], p = o.p;
+  $('cKicker').textContent = `Hành tinh ${i+1} · ${p.name}`;
+  $('cTitle').innerHTML = `<span class="dot" style="color:${p.colors[2]};background:${p.colors[0]}"></span>${p.trait}`;
+  $('cPhoto').innerHTML = p.photo ? `<img src="${p.photo}" alt="${p.caption}">` : '';
+  const im = $('cPhoto').querySelector('img'); if(im) im.onclick = () => { $('lbImg').src = p.photo; $('lightbox').classList.remove('hidden'); };
+  $('cMsg').textContent = p.msg;
+  $('cIdx').textContent = `${i+1} / ${PLANETS.length}`;
+  $('card').classList.remove('hidden');
+  targetTimeScale = 0; controls.autoRotate = false;
+
+  const pos = worldPos(o.mesh);
+  const dir = pos.clone().normalize();
+  const side = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0,1,0)).normalize();
+  const dist = Math.max(p.r*6, 5) * (isMobile ? 1.9 : 1);
+  const cam = pos.clone().add(side.multiplyScalar(dist)).add(new THREE.Vector3(0, dist*.35, 0)).add(dir.clone().multiplyScalar(dist*.3));
+  // offset so planet sits left of the card on desktop / above sheet on mobile
+  const tgt = pos.clone();
+  if(isMobile) tgt.y -= dist*.42;
+  focus = { target: tgt, cam, tgtBase: pos.clone() };
+  if(!seen.has(i)){ seen.add(i); o.lbl.classList.add('seen'); $('seenCount').textContent = seen.size;
+    if(seen.size === PLANETS.length) $('letterBtn').classList.add('pulse'); }
+}
+function closeCard(){
+  $('card').classList.add('hidden'); current = -1;
+  focus = { target: new THREE.Vector3(), cam: CAM_HOME.clone() };
+  if(!paused) targetTimeScale = 1; controls.autoRotate = !paused;
+}
+$('cardClose').onclick = closeCard;
+$('cNext').onclick = () => openCard((current+1) % PLANETS.length);
+$('cPrev').onclick = () => openCard((current-1+PLANETS.length) % PLANETS.length);
+$('lightbox').onclick = () => $('lightbox').classList.add('hidden');
+
+$('pauseBtn').onclick = () => {
+  paused = !paused; targetTimeScale = paused || current>=0 ? 0 : 1; controls.autoRotate = !paused && current<0;
+  $('pauseBtn').textContent = paused ? '▶ Tiếp tục' : '⏸ Dừng lại';
+};
+
+const letterBody = $('letterBody');
+LETTER.forEach(t => { const p = document.createElement('p'); p.textContent = t; letterBody.appendChild(p); });
+$('letterSign').textContent = SIGN;
+$('letterBtn').onclick = () => {
+  if(current>=0) closeCard();
+  $('letterBtn').classList.remove('pulse');
+  $('letter').classList.remove('hidden');
+  [...letterBody.children].forEach((p,k) => { p.classList.remove('on'); setTimeout(()=>p.classList.add('on'), 400 + k*900); });
+};
+$('letterClose').onclick = () => $('letter').classList.add('hidden');
+
+controls.addEventListener('start', () => { if(focus && current<0) focus = null; controls.autoRotate = false; });
+
+/* ---------- picking ---------- */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+let downXY = null;
+function pick(x, y){
+  ndc.set(x/innerWidth*2-1, -(y/innerHeight)*2+1);
+  ray.setFromCamera(ndc, camera);
+  const hit = ray.intersectObjects(clickables, false)[0];
+  return hit ? hit.object.userData.index : -1;
+}
+canvas.addEventListener('pointerdown', e => downXY = [e.clientX, e.clientY]);
+canvas.addEventListener('pointerup', e => {
+  if(!downXY || !started) return;
+  const moved = Math.hypot(e.clientX-downXY[0], e.clientY-downXY[1]); downXY = null;
+  if(moved > 6) return;
+  const i = pick(e.clientX, e.clientY);
+  if(i >= 0) openCard(i); else sparkle(e.clientX, e.clientY);
+});
+canvas.addEventListener('pointermove', e => {
+  if(e.pointerType !== 'mouse' || !started) return;
+  canvas.style.cursor = pick(e.clientX, e.clientY) >= 0 ? 'pointer' : 'grab';
+});
+function sparkle(x, y){
+  const s = document.createElement('div'); s.className = 'spark'; s.textContent = ['✦','✧','★','✩'][Math.floor(Math.random()*4)];
+  s.style.left = x+'px'; s.style.top = y+'px'; document.body.appendChild(s); setTimeout(()=>s.remove(), 1300);
+}
+
+/* ---------- shooting stars ---------- */
+function shoot(){
+  const el = document.createElement('div'); el.className = 'shoot';
+  const x = rand(innerWidth*.2, innerWidth*1.1), y = rand(-40, innerHeight*.4), ang = rand(150, 165);
+  el.style.left = x+'px'; el.style.top = y+'px'; el.style.transform = `rotate(${ang}deg)`;
+  document.body.appendChild(el);
+  const dx = Math.cos(ang*Math.PI/180)*700, dy = Math.sin(ang*Math.PI/180)*700;
+  el.animate([{ transform:`translate(0,0) rotate(${ang}deg)`, opacity:0 }, { opacity:1, offset:.15 },
+              { transform:`translate(${dx}px,${dy}px) rotate(${ang}deg)`, opacity:0 }], { duration:1400, easing:'ease-out' }).onfinish = () => el.remove();
+  setTimeout(shoot, rand(2500, 6500));
+}
+setTimeout(shoot, 3000);
+
+/* ---------- loop ---------- */
+const clock = new THREE.Clock();
+const tmp = new THREE.Vector3();
+const ease = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
+
+function tick(){
+  const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime;
+  timeScale += (targetTimeScale - timeScale) * .05;
+
+  stars1.material.uniforms.uTime.value = t; stars2.material.uniforms.uTime.value = t;
+  stars1.rotation.y += dt*.003; stars2.rotation.y -= dt*.006; nebula.rotation.y += dt*.002;
+
+  sun.rotation.y += dt*.08;
+  const pulse = 1 + Math.sin(t*1.3)*.04;
+  glow1.scale.setScalar(17*pulse); glow2.scale.setScalar(34*(2-pulse));
+  belt.rotation.y += dt*.03*timeScale;
+
+  planetObjs.forEach(o => {
+    o.angle += dt * o.p.speed * .22 * timeScale;
+    o.holder.position.set(Math.cos(o.angle)*o.p.d, 0, Math.sin(o.angle)*o.p.d);
+    o.mesh.rotation.y += dt * .5;
+    if(o.pola){
+      o.polaAngle += dt*.5;
+      const rr = o.p.r + Math.max(1.3, o.p.r*1.2);
+      o.pola.position.set(Math.cos(o.polaAngle)*rr, o.p.r*.6 + Math.sin(t*1.5)*.15, Math.sin(o.polaAngle)*rr);
+      o.pola.material.rotation = Math.sin(t*.8 + o.polaAngle)*.08;
+    }
+  });
+
+  // intro fly-in
+  if(started && introT < 1){
+    introT = Math.min(1, introT + dt/3.2);
+    camera.position.lerpVectors(introFrom, CAM_HOME, ease(introT));
+    camera.lookAt(0,0,0);
+    if(introT >= 1) controls.enabled = true;
+  } else if(focus){
+    controls.target.lerp(focus.target, .06);
+    camera.position.lerp(focus.cam, .05);
+    if(current < 0 && camera.position.distanceTo(focus.cam) < .3) focus = null;
+  }
+  if(controls.enabled) controls.update();
+
+  // labels
+  const showLabels = started && introT > .85;
+  planetObjs.forEach(o => {
+    tmp.copy(worldPos(o.mesh)); const r = o.p.r;
+    tmp.y -= r*1.15; tmp.project(camera);
+    const vis = showLabels && tmp.z < 1 && Math.abs(tmp.x) < 1.1 && Math.abs(tmp.y) < 1.1;
+    o.lbl.style.opacity = vis ? (current===-1 || current===o.mesh.userData.index ? 1 : .35) : 0;
+    o.lbl.style.pointerEvents = vis ? 'auto' : 'none';
+    o.lbl.style.transform = `translate(-50%,0) translate(${(tmp.x*.5+.5)*innerWidth}px, ${(-tmp.y*.5+.5)*innerHeight + 6}px)`;
+  });
+  tmp.set(0,4.4,0).project(camera);
+  sunLbl.style.opacity = showLabels && tmp.z < 1 ? 1 : 0;
+  sunLbl.style.transform = `translate(-50%,-50%) translate(${(tmp.x*.5+.5)*innerWidth}px, ${(-tmp.y*.5+.5)*innerHeight}px)`;
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+tick();
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+addEventListener('keydown', e => { if(e.key === 'Escape'){ closeCard(); $('letter').classList.add('hidden'); $('lightbox').classList.add('hidden'); } });
+</script>
+</body>
+</html>
