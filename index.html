@@ -108,20 +108,20 @@
 <div id="labels"></div>
 
 <div id="hud" class="hidden">
-  <div id="brand"><h1>Vũ trụ 10A7</h1><p>19 · 11 · 2026</p></div>
+  <div id="brand"><h1>Vũ trụ 10A7</h1><p>MEN'S DAY · 19.11</p></div>
   <div id="progress">Đã khám phá<br><b id="seenCount">0</b> / <span id="totalCount">8</span> hành tinh</div>
   <div id="hint">Kéo để xoay · Cuộn/chụm để phóng to · Chạm vào hành tinh ✦</div>
   <div id="actions">
     <button class="btn" id="pauseBtn">⏸ Dừng lại</button>
-    <button class="btn gold" id="letterBtn">💌 Lá thư gửi các cậu</button>
+    <button class="btn gold" id="letterBtn">💌 Lời chúc 19/11</button>
   </div>
 </div>
 
 <div id="intro">
   <div class="inner">
-    <div class="date">19 · 11 · 2026</div>
+    <div class="date">19 · 11 · INTERNATIONAL MEN'S DAY</div>
     <h2>Gửi những chàng trai 10A7</h2>
-    <p>Giữa vũ trụ bao la này, có tám hành tinh được đặt theo tên những điều tuyệt vời nhất ở các cậu.<br>Hãy chạm vào từng hành tinh để khám phá nhé ✦</p>
+    <p>Nhân ngày Quốc tế Nam giới, có tám hành tinh mang theo tám lời chúc dành riêng cho các cậu.<br>Hãy chạm vào từng hành tinh để mở lời chúc nhé ✦</p>
     <button class="btn gold" id="startBtn">Bước vào vũ trụ ✦</button>
   </div>
 </div>
@@ -163,27 +163,27 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
    ===================================================== */
 const PLANETS = [
   { name:'Sao Thủy', trait:'Nhanh nhẹn', r:.45, d:6, speed:1.6, type:'rock', colors:['#8f8378','#6b6058','#b9aa9b','#5a4f48'],
-    msg:'Hành tinh nhỏ nhất nhưng chạy nhanh nhất hệ — giống cách các cậu luôn là người xắn tay áo đầu tiên mỗi khi lớp cần: khiêng bàn, kê ghế, chạy việc, chẳng cần ai phải nhắc.' },
+    msg:'Sao Thủy nhỏ bé nhưng chạy nhanh nhất hệ — giống các cậu, lúc nào cũng là người xắn tay áo đầu tiên. Chúc các cậu luôn nhanh nhẹn, tháo vát, việc gì cũng làm gọn gàng.' },
   { name:'Sao Kim', trait:'Ấm áp', r:.7, d:8.5, speed:1.2, type:'bands', colors:['#e6b878','#d49a5b','#f3d3a1','#c98a4e'],
-    msg:'Sao Kim là “ngôi sao” sáng nhất trên bầu trời đêm. Đằng sau những trò trêu chọc, tụi mình biết các cậu ấm áp hơn vẻ ngoài nhiều lắm — chỉ là hơi ngại thừa nhận thôi 😄' },
-  { name:'Trái Đất', trait:'Ngôi nhà chung', r:.75, d:11.5, speed:1.0, type:'earth', colors:['#1d4f9c','#2f8f5b','#e8eef7'], photo:'img/anh2.jpg', caption:'cả nhà 10A7',
-    msg:'Hành tinh duy nhất có sự sống — và 10A7 là nơi duy nhất có đúng những con người này. Cảm ơn các cậu đã cùng nhau biến lớp học thành một “ngôi nhà” đầy ắp tiếng cười.' },
+    msg:'Một chàng trai mạnh mẽ thật sự là người biết quan tâm. Chúc các cậu luôn giữ trái tim ấm áp như Sao Kim — ngôi sao sáng nhất mỗi chiều tối.' },
+  { name:'Trái Đất', trait:'Chân thành', r:.75, d:11.5, speed:1.0, type:'earth', colors:['#1d4f9c','#2f8f5b','#e8eef7'], photo:'img/anh2.jpg', caption:'chàng trai 10A7',
+    msg:'Trái Đất xoay mãi quanh Mặt Trời mà chưa bao giờ lạc quỹ đạo. Chúc các cậu luôn sống chân thành, giữ vững chính mình giữa bao đổi thay, và luôn có những người bạn tốt bên cạnh.' },
   { name:'Sao Hỏa', trait:'Nhiệt huyết', r:.6, d:14.5, speed:.85, type:'rock', colors:['#b8492b','#8e3420','#d9734f','#6e2a1a'], photo:'img/anh1.jpg', caption:'áo trắng A7',
-    msg:'Hành tinh đỏ rực như sức nóng trên sân cỏ hôm ấy. Áo trắng A7, mồ hôi, nắng gắt và những pha bóng cháy hết mình — các cậu đã chơi bằng cả trái tim, và tụi mình tự hào lắm.' },
+    msg:'Hành tinh đỏ rực như sức nóng trên sân cỏ hôm ấy: áo trắng A7, mồ hôi, nắng gắt và những pha bóng cháy hết mình. Chúc các cậu giữ mãi ngọn lửa ấy — trên sân bóng, trong học tập và trên mọi con đường phía trước.' },
   { name:'Sao Mộc', trait:'Vững chãi', r:1.6, d:19.5, speed:.5, type:'bands', colors:['#c9a27e','#a8744f','#e8d2b4','#8c5a3c'],
-    msg:'Sao Mộc khổng lồ âm thầm hút đi những thiên thạch để che chở cả hệ Mặt Trời. Cảm ơn các cậu vì luôn đứng ra gánh những phần việc nặng nhất, để lớp mình lúc nào cũng bình yên.' },
-  { name:'Sao Thổ', trait:'Đoàn kết', r:1.3, d:25, speed:.38, type:'bands', colors:['#e3cc94','#c9ab6c','#f1e3bb','#b8955a'], ring:true, photo:'img/anh3.jpg', caption:'mãi một đội',
-    msg:'Vành đai lấp lánh của Sao Thổ được tạo nên từ hàng tỉ mảnh băng nhỏ cùng bay chung một quỹ đạo. 10A7 cũng vậy — cầu thủ và cổ động viên, gộp lại thành một vòng tròn không thể tách rời.' },
-  { name:'Sao Thiên Vương', trait:'Cá tính', r:1.0, d:30, speed:.28, type:'bands', colors:['#8fd3dc','#79c0cb','#b5e6ec','#6aaab5'], tilt:1.7,
-    msg:'Hành tinh duy nhất quay “nằm nghiêng” — khác biệt nhưng chẳng sao cả. Mỗi cậu một cá tính, một kiểu hài hước riêng, và chính sự khác biệt ấy làm lớp mình thú vị đến vậy.' },
+    msg:'Sao Mộc khổng lồ âm thầm che chắn cho cả hệ Mặt Trời. Chúc các cậu lớn lên thành những người đàn ông vững chãi — là chỗ dựa cho gia đình, bạn bè và cho chính mình.' },
+  { name:'Sao Thổ', trait:'Đồng đội', r:1.3, d:25, speed:.38, type:'bands', colors:['#e3cc94','#c9ab6c','#f1e3bb','#b8955a'], ring:true, photo:'img/anh3.jpg', caption:'mãi một đội',
+    msg:'Vành đai Sao Thổ là hàng tỉ mảnh băng nhỏ cùng bay chung một quỹ đạo. Chúc các cậu luôn sát cánh bên nhau như một đội bóng — thắng cùng vui, thua cùng đứng dậy.' },
+  { name:'Sao Thiên Vương', trait:'Bản lĩnh', r:1.0, d:30, speed:.28, type:'bands', colors:['#8fd3dc','#79c0cb','#b5e6ec','#6aaab5'], tilt:1.7,
+    msg:'Hành tinh duy nhất quay “nằm nghiêng” mà vẫn tự tin tỏa sáng. Chúc các cậu đủ bản lĩnh để là chính mình — không cần giống ai, chỉ cần là phiên bản tốt nhất của bản thân.' },
   { name:'Sao Hải Vương', trait:'Ước mơ', r:.95, d:34.5, speed:.22, type:'bands', colors:['#3a5fd0','#2c48a8','#5d84ee','#22388a'],
-    msg:'Hành tinh xa nhất, phải thật kiên nhẫn mới nhìn thấy được. Mong các cậu luôn giữ những ước mơ xa xôi nhất, và cứ kiên trì bay tới — dù hành trình có dài đến đâu.' },
+    msg:'Hành tinh xa nhất, phải thật kiên nhẫn mới nhìn thấy được. Chúc các cậu dám mơ thật lớn và kiên trì bay tới đó, dù hành trình có dài đến đâu.' },
 ];
 const LETTER = [
-  'Giữa hàng tỉ ngôi sao ngoài kia, vũ trụ đã sắp xếp để chúng mình cùng chung một lớp — chỉ riêng điều đó thôi đã là một phép màu nhỏ rồi.',
-  'Cảm ơn các cậu vì những trận bóng cháy hết mình dưới nắng, vì những tiếng cười làm lớp mình sáng hơn mỗi ngày, và vì đã luôn là điểm tựa mỗi khi 10A7 cần.',
-  'Nhân ngày Quốc tế Nam giới 19/11, chúc các cậu luôn khỏe mạnh, tử tế, dám mơ thật lớn và đủ dũng cảm để đi trên quỹ đạo của riêng mình.',
-  'Dù sau này mỗi người bay về một phương trời, mong rằng chúng ta vẫn mãi thuộc về cùng một dải ngân hà mang tên 10A7. 💙',
+  'Nhân ngày Quốc tế Nam giới 19/11, cả vũ trụ nhỏ này được làm ra để dành riêng cho các cậu — những chàng trai của 10A7.',
+  'Chúc các cậu luôn khỏe mạnh, học tốt, sống tử tế và đủ dũng cảm để theo đuổi những gì mình yêu thích. Và đừng ngại thể hiện cảm xúc nhé — mạnh mẽ không có nghĩa là lúc nào cũng phải gồng mình.',
+  'Mong các cậu sẽ lớn lên thành những người đàn ông bản lĩnh, biết yêu thương, có trách nhiệm, và luôn tự hào về chính mình.',
+  'Happy International Men\'s Day! Cứ tỏa sáng theo cách của riêng các cậu nhé. 💙',
 ];
 const SIGN = '— Các bạn nữ 10A7 ✦';
 
@@ -370,7 +370,7 @@ const planetObjs = PLANETS.map((p, i) => {
   return { p, holder, mesh, pola, lbl, angle: rand(0, Math.PI*2), polaAngle: rand(0,Math.PI*2) };
 });
 const sunLbl = document.createElement('div'); sunLbl.className = 'lbl sun';
-sunLbl.innerHTML = '10A7<small>19 · 11</small>'; labelsEl.appendChild(sunLbl);
+sunLbl.innerHTML = '10A7<small>MEN\'S DAY</small>'; labelsEl.appendChild(sunLbl);
 
 /* ---------- asteroid belt ---------- */
 const belt = (() => {
